@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Registrations - EventHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">EventHub</a>
+            <div class="nav-links" id="dynamic-nav"></div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h2 class="mb-4">My Registrations</h2>
+        
+        <div id="loading" class="text-center text-muted mb-4 hidden">Loading...</div>
+        
+        <div class="card" style="padding: 1rem; overflow-x: auto;">
+            <table id="registrations-table" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="registrations-body">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+            
+            <div id="empty-state" class="text-center hidden py-4">
+                <p class="text-muted mb-3">You haven't registered for any events yet.</p>
+                <a href="events.html" class="btn btn-primary">Find Events</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 EventHub. All rights reserved.</p></div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if (!api.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRegistrations);
+
+        async function loadRegistrations() {
+            const table = document.getElementById('registrations-table');
+            const tbody = document.getElementById('registrations-body');
+            const empty = document.getElementById('empty-state');
+            const loading = document.getElementById('loading');
+
+            loading.classList.remove('hidden');
+            table.classList.add('hidden');
+            empty.classList.add('hidden');
+
+            try {
+                const regs = await api.fetchAPI('/registrations/my-registrations');
+                loading.classList.add('hidden');
+
+                if (regs.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                table.classList.remove('hidden');
+                tbody.innerHTML = regs.map(reg => `
+                    <tr>
+                        <td><strong>${reg.eventTitle}</strong></td>
+                        <td>${formatDate(reg.eventDate)}</td>
+                        <td>${reg.location}</td>
+                        <td>
+                            <span class="badge ${reg.status === 'CONFIRMED' ? 'badge-success' : 'badge-danger'}">
+                                ${reg.status}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="event-details.html?id=${reg.eventId}" class="btn btn-secondary">View</a>
+                            ${reg.status === 'CONFIRMED' ? `<button onclick="cancelRegistration(${reg.eventId})" class="btn btn-danger">Cancel</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                loading.classList.add('hidden');
+                showNotification('Failed to load registrations', 'error');
+            }
+        }
+
+        async function cancelRegistration(eventId) {
+            if (!confirm('Are you sure you want to cancel your registration?')) return;
+
+            try {
+                await api.fetchAPI(`/registrations/events/${eventId}`, {
+                    method: 'DELETE'
+                });
+                showNotification('Registration cancelled successfully', 'success');
+                loadRegistrations();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

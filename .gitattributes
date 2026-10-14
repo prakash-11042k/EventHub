@@ -1,0 +1,45 @@
+# ==============================================================================
+# EventHub Root .gitattributes
+# Enforces cross-platform line ending normalization and binary preservation
+# ==============================================================================
+
+# Set default behavior: auto-normalize line endings for text files
+* text=auto
+
+# Source code and web assets (normalize to LF across Git)
+*.java text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
+
+# Platform-specific scripts
+*.sh text eol=lf
+mvnw text eol=lf
+backend/mvnw text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+backend/mvnw.cmd text eol=crlf
+
+# Binary assets (prevent corrupting binary data during checkouts/commits)
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

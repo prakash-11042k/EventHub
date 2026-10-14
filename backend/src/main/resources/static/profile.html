@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - EventHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">EventHub</a>
+            <div class="nav-links" id="dynamic-nav"></div>
+        </div>
+    </nav>
+
+    <main class="flex items-center" style="justify-content: center;">
+        <div class="card" style="width: 100%; max-width: 500px; padding: 2rem;">
+            <h2 class="mb-4">My Profile</h2>
+            <form id="profile-form">
+                <div class="form-group">
+                    <label class="form-label">Email (Read Only)</label>
+                    <input type="email" id="email" class="form-control" readonly style="background-color: var(--bg-color);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <input type="text" id="role" class="form-control" readonly style="background-color: var(--bg-color);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="fullName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="update-btn">Update Profile</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 EventHub. All rights reserved.</p></div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if (!api.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const profile = await api.fetchAPI('/users/profile');
+                document.getElementById('email').value = profile.email;
+                document.getElementById('role').value = profile.role;
+                document.getElementById('fullName').value = profile.fullName;
+                document.getElementById('phone').value = profile.phone || '';
+            } catch (error) {
+                showNotification('Failed to load profile', 'error');
+            }
+        });
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                fullName: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value
+            };
+            const btn = document.getElementById('update-btn');
+            btn.disabled = true;
+
+            try {
+                const user = await api.fetchAPI('/users/profile', {
+                    method: 'PUT',
+                    body: payload
+                });
+                
+                // Update local storage user details
+                const currentData = api.getUserInfo();
+                api.setAuth(api.getToken(), { ...currentData, fullName: user.fullName });
+                
+                showNotification('Profile updated successfully', 'success');
+                setupNavigation(); // Refresh nav to show new name
+            } catch (error) {
+                showNotification(error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

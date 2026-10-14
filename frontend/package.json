@@ -1,0 +1,13 @@
+{
+  "name": "eventhub-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EventHub Frontend wrapper",
+  "scripts": {
+    "dev": "npm --prefix react run dev",
+    "build": "npm --prefix react run build",
+    "preview": "npm --prefix react run preview",
+    "start": "npm --prefix react run dev",
+    "postinstall": "npm --prefix react install"
+  }
+}

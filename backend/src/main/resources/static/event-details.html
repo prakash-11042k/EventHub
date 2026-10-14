@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - EventHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">EventHub</a>
+            <div class="nav-links" id="dynamic-nav"></div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="loading" class="text-center text-muted">Loading event details...</div>
+        <div id="error-state" class="text-center text-error hidden">Event not found.</div>
+        
+        <div id="event-content" class="hidden">
+            <div class="card" style="padding: 2rem;">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <img id="event-image" src="" alt="Event Image" style="width: 100%; border-radius: var(--radius-md); object-fit: cover;">
+                    </div>
+                    <div>
+                        <span id="event-category" class="badge badge-success mb-2"></span>
+                        <h1 id="event-title" class="mb-2"></h1>
+                        
+                        <div class="mb-3">
+                            <p class="text-secondary mb-1"><strong>Date:</strong> <span id="event-date"></span></p>
+                            <p class="text-secondary mb-1"><strong>Time:</strong> <span id="event-time"></span></p>
+                            <p class="text-secondary mb-1"><strong>Location:</strong> <span id="event-location"></span>, <span id="event-venue"></span></p>
+                            <p class="text-secondary mb-1"><strong>Organizer:</strong> <span id="event-organizer"></span></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="mb-1">About this event</h3>
+                            <p id="event-description" class="text-secondary" style="white-space: pre-wrap;"></p>
+                        </div>
+
+                        <div class="card" style="background-color: var(--bg-color); padding: 1.5rem; border: none;">
+                            <div class="flex justify-between items-center mb-3">
+                                <span>Availability</span>
+                                <span id="event-availability" class="badge"></span>
+                            </div>
+                            <button id="register-btn" class="btn btn-primary btn-block">Register Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 EventHub. All rights reserved.</p></div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!eventId) {
+                window.location.href = 'events.html';
+                return;
+            }
+            loadEventDetails();
+        });
+
+        async function loadEventDetails() {
+            try {
+                const event = await api.fetchAPI(`/events/${eventId}`);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('event-content').classList.remove('hidden');
+
+                document.getElementById('event-title').textContent = event.title;
+                document.getElementById('event-category').textContent = event.categoryName;
+                document.getElementById('event-date').textContent = formatDate(event.eventDate);
+                document.getElementById('event-time').textContent = `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`;
+                document.getElementById('event-location').textContent = event.location;
+                document.getElementById('event-venue').textContent = event.venue;
+                document.getElementById('event-organizer').textContent = event.organizer || 'N/A';
+                document.getElementById('event-description').textContent = event.description;
+                document.getElementById('event-image').src = event.imageUrl || 'https://via.placeholder.com/800x600?text=Event';
+                
+                const availSpan = document.getElementById('event-availability');
+                const regBtn = document.getElementById('register-btn');
+                
+                if (event.availableSeats > 0) {
+                    availSpan.textContent = `${event.availableSeats} spots left`;
+                    availSpan.className = 'badge badge-success';
+                } else {
+                    availSpan.textContent = 'Sold Out';
+                    availSpan.className = 'badge badge-danger';
+                    regBtn.disabled = true;
+                    regBtn.textContent = 'Event Full';
+                }
+
+                regBtn.addEventListener('click', handleRegistration);
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+            }
+        }
+
+        async function handleRegistration() {
+            if (!api.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const btn = document.getElementById('register-btn');
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            try {
+                await api.fetchAPI(`/registrations/events/${eventId}`, {
+                    method: 'POST'
+                });
+                showNotification('Successfully registered!', 'success');
+                setTimeout(() => window.location.href = 'my-registrations.html', 1500);
+            } catch (error) {
+                showNotification(error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Register Now';
+            }
+        }
+    </script>
+</body>
+</html>

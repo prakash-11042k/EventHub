@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - EventHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">EventHub <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">Admin</span></a>
+            <div class="nav-links" id="dynamic-nav"></div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="flex justify-between items-center mb-4">
+            <h2>Admin Dashboard</h2>
+            <div class="flex gap-2">
+                <a href="admin-events.html" class="btn btn-secondary">Manage Events</a>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 mb-4">
+            <div class="card" style="padding: 2rem; text-align: center;">
+                <h3 class="text-secondary mb-1">Total Users</h3>
+                <div id="stat-users" style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">0</div>
+            </div>
+            <div class="card" style="padding: 2rem; text-align: center;">
+                <h3 class="text-secondary mb-1">Total Events</h3>
+                <div id="stat-events" style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">0</div>
+            </div>
+            <div class="card" style="padding: 2rem; text-align: center;">
+                <h3 class="text-secondary mb-1">Total Registrations</h3>
+                <div id="stat-regs" style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">0</div>
+            </div>
+        </div>
+        
+        <div class="card" style="padding: 1.5rem;">
+            <h3 class="mb-3">Recent Registrations (All)</h3>
+            <div style="overflow-x: auto;">
+                <table id="all-regs-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Event</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-regs-body">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 EventHub. All rights reserved.</p></div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if (!api.isAdmin()) {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const stats = await api.fetchAPI('/admin/dashboard/stats');
+                document.getElementById('stat-users').textContent = stats.totalUsers;
+                document.getElementById('stat-events').textContent = stats.totalEvents;
+                document.getElementById('stat-regs').textContent = stats.totalRegistrations;
+
+                const regs = await api.fetchAPI('/registrations');
+                const tbody = document.getElementById('all-regs-body');
+                if (regs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">No registrations found</td></tr>';
+                } else {
+                    // Show latest 10
+                    tbody.innerHTML = regs.slice(-10).reverse().map(r => `
+                        <tr>
+                            <td>${r.userName} (${r.userEmail})</td>
+                            <td>${r.eventTitle}</td>
+                            <td>${formatDate(r.registrationDate)}</td>
+                            <td><span class="badge ${r.status === 'CONFIRMED' ? 'badge-success' : 'badge-danger'}">${r.status}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                showNotification('Error loading dashboard data', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

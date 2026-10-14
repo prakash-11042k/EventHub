@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Events - EventHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">EventHub</a>
+            <div class="nav-links" id="dynamic-nav"></div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="flex justify-between items-center mb-4">
+            <h2>Explore Events</h2>
+        </div>
+        
+        <div class="card mb-4" style="padding: 1.5rem;">
+            <form id="search-form" class="flex gap-4 items-center">
+                <div style="flex: 1;">
+                    <input type="text" id="search-query" class="form-control" placeholder="Search by title or location...">
+                </div>
+                <div style="flex: 1;">
+                    <select id="category-filter" class="form-control">
+                        <option value="">All Categories</option>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+                <button type="button" class="btn btn-secondary" id="clear-btn">Clear</button>
+            </form>
+        </div>
+
+        <div id="loading" class="text-center text-muted mb-4 hidden">Loading events...</div>
+        
+        <div class="grid grid-cols-3" id="events-grid">
+            <!-- Events loaded here -->
+        </div>
+        
+        <div id="empty-state" class="text-center hidden card" style="padding: 3rem;">
+            <h3 class="text-muted">No events found</h3>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container"><p>&copy; 2026 EventHub. All rights reserved.</p></div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+            loadEvents();
+        });
+
+        document.getElementById('search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            loadEvents();
+        });
+
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.getElementById('search-query').value = '';
+            document.getElementById('category-filter').value = '';
+            loadEvents();
+        });
+
+        async function loadCategories() {
+            try {
+                const categories = await api.fetchAPI('/categories');
+                const select = document.getElementById('category-filter');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load categories');
+            }
+        }
+
+        async function loadEvents() {
+            const grid = document.getElementById('events-grid');
+            const empty = document.getElementById('empty-state');
+            const loading = document.getElementById('loading');
+            const q = document.getElementById('search-query').value;
+            const c = document.getElementById('category-filter').value;
+            
+            grid.innerHTML = '';
+            empty.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                let url = '/events';
+                const params = new URLSearchParams();
+                if (q) params.append('query', q);
+                if (c) params.append('categoryId', c);
+                
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
+                const events = await api.fetchAPI(url);
+                loading.classList.add('hidden');
+
+                if (events.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                grid.innerHTML = events.map(event => `
+                    <div class="card">
+                        <img src="${event.imageUrl || 'https://via.placeholder.com/400x200?text=Event'}" class="event-img" alt="${event.title}">
+                        <div class="event-body">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="badge badge-success">${event.categoryName}</span>
+                                <span class="badge ${event.availableSeats > 0 ? 'badge-success' : 'badge-danger'}">
+                                    ${event.availableSeats} spots left
+                                </span>
+                            </div>
+                            <h3 class="event-title">${event.title}</h3>
+                            <div class="event-meta">
+                                <span>📅 ${formatDate(event.eventDate)} at ${formatTime(event.startTime)}</span>
+                                <span>📍 ${event.location}</span>
+                            </div>
+                            <a href="event-details.html?id=${event.id}" class="btn btn-primary btn-block">View Details</a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                loading.classList.add('hidden');
+                showNotification('Failed to load events', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
