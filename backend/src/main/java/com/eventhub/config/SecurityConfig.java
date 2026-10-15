@@ -36,7 +36,7 @@ public class SecurityConfig {
             .cors(cors -> {}) // Handled by WebMvcConfigurer
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**", "/api/categories/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

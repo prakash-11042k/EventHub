@@ -1,0 +1,46 @@
+# Git metadata
+.git
+.gitignore
+
+# Documentation
+README.md
+
+# Exclude entire frontend from backend deployment
+frontend/
+**/frontend/
+
+# Node / Frontend local artifacts
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.npm/
+
+# Maven local build artifacts
+backend/target/
+**/target/
+HELP.md
+
+# Secrets and local configurations
+.env
+.env.*
+*.env
+*.env.*
+**/application-local.properties
+**/application-dev.properties
+**/application-secret.properties
+application-local.properties
+application-dev.properties
+application-secret.properties
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

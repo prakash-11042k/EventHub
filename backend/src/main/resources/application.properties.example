@@ -26,10 +26,10 @@ spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=false
 spring.jpa.open-in-view=false
 
-# Server Configuration
-server.port=${SERVER_PORT:8081}
+# Server Configuration (Supports Render PORT dynamically with local fallback)
+server.port=8081
 
 # JWT Configuration
 # Note: Key must be a Base64-encoded string representing at least 256 bits (32 bytes).
-app.jwt.secret=${JWT_SECRET:4583945839458934589345903845093845093840598345098345903485093485093485093485}
-app.jwt.expiration-ms=${JWT_EXPIRATION_MS:86400000}
+app.jwt.secret=${JWT_SECRET}
+app.jwt.expiration-ms=${JWT_EXPIRATION_MS}

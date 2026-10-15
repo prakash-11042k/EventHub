@@ -24,7 +24,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        removeAllEvents();
+        // removeAllEvents(); // Disabled to prevent wiping events and registrations on startup
         seedCategories();
     }
 
