@@ -1,4 +1,21 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
+/**
+ * Normalizes the API base URL to ensure:
+ * 1. Safe stripping of trailing slashes
+ * 2. Defaulting to '/api' for local dev proxy
+ * 3. Automatic appending of '/api' if a full backend origin was supplied without it
+ */
+const getApiBaseUrl = () => {
+  const raw = (RAW_API_BASE_URL || '').trim().replace(/\/+$/, '');
+  if (!raw || raw === '/api') {
+    return '/api';
+  }
+  if (/^https?:\/\//i.test(raw) && !raw.endsWith('/api')) {
+    return `${raw}/api`;
+  }
+  return raw;
+};
 
 export const api = {
   getToken() {
@@ -53,7 +70,8 @@ export const api = {
       config.body = JSON.stringify(options.body);
     }
 
-    const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
     try {
       const response = await fetch(url, config);
