@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventService {
 
     private final EventRepository eventRepository;
@@ -76,6 +77,7 @@ public class EventService {
         return mapToDto(event);
     }
 
+    @Transactional
     public EventDto createEvent(EventDto eventDto) {
         Category category = categoryRepository.findById(eventDto.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -87,6 +89,7 @@ public class EventService {
         return mapToDto(eventRepository.save(event));
     }
 
+    @Transactional
     public EventDto updateEvent(Long id, EventDto eventDto) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
